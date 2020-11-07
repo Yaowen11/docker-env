@@ -1,4 +1,4 @@
-FROM php:7.4.12-cli-buster
+FROM php:7.4.12-fpm-buster
 
 COPY sources.list /etc/apt
 
@@ -28,6 +28,4 @@ RUN apt-get clean all && apt-get update && apt-get install -y \
     && docker-php-ext-install zip \
     && docker-php-ext-configure sockets \
     && docker-php-ext-install sockets \
-    && pecl install redis-5.3.2 \
-    && docker-php-ext-enable redis \
     && mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini

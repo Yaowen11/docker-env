@@ -1,0 +1,44 @@
+version: '3'
+services:
+  nginx:
+    image: library/nginx:1.18
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./app:/var/www/html/app
+    depends_on:
+      - composer
+      - php
+  php:
+    build: ./php
+    image: laravel/php
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./app:/var/www/html
+    depends_on:
+      - composer
+      - mysql
+  composer:
+    image: composer:2
+    volumes:
+      - ./app:/var/www/html
+    working_dir: /var/www/html
+    environment: [ "composer", "create-project", "--prefer-dist", "laravel/laravel", "app" ]
+  mysql:
+    image: mysql:8.0.22
+    ports:
+      - 3306:3306
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_DATABASE=app
+      - MYSQL_USER=app
+      - MYSQL_PASSWORD=secret
+      - MYSQL_ROOT_PASSWORD=secret
+  redis:
+    image: redis:6
+    ports:
+      - 6379:6379
+    environment:
+      - TZ=Asia/Shanghai
