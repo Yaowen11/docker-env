@@ -1,0 +1,37 @@
+version: '3'
+services:
+  php:
+    build: ./php
+    image: magento:php74-cli
+    ports:
+      - 80:9090
+    volumes:
+      - ./magento2:/var/www/html
+    environment:
+      - TZ=Asia/Shanghai
+    entrypoint: ["php", "-S", "0.0.0.0:9090"]
+    depends_on:
+      - mysql
+      - elasticsearch
+  mysql:
+    image: mysql:8.0.21
+    container_name: mysql8021
+    hostname: mysql8021
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_USER=magento
+      - MYSQL_DATABASE=magento
+      - MYSQL_USER_PASSWORD=magento
+    ports:
+      - 3030:3306
+  elasticsearch:
+    image: elasticsearch:7.9.1
+    container_name: elasticsearch791
+    hostname: elasticsearch791
+    environment:
+      - TZ=Asia/Shanghai
+      - discovery.type=single-node
+    ports:
+      - 19200:9200
+      - 19300:9300
