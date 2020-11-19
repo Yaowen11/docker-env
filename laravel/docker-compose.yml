@@ -2,6 +2,8 @@ version: '3'
 services:
   nginx:
     image: library/nginx:1.18
+    hostname: laravel-nginx
+    container_name: laravel-nginx
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -13,6 +15,8 @@ services:
   php:
     build: ./php
     image: laravel/php
+    hostname: laravel-fpm
+    container_name: laravel-fpm
     environment:
       - TZ=Asia/Shanghai
     volumes:
@@ -20,14 +24,10 @@ services:
     depends_on:
       - composer
       - mysql
-  composer:
-    image: composer:2
-    volumes:
-      - ./app:/var/www/html
-    working_dir: /var/www/html
-    environment: [ "composer", "create-project", "--prefer-dist", "laravel/laravel", "app" ]
   mysql:
     image: mysql:8.0.22
+    hostname: laravel-mysql
+    container_name: laravel-mysql
     ports:
       - 3306:3306
     environment:
@@ -38,7 +38,31 @@ services:
       - MYSQL_ROOT_PASSWORD=secret
   redis:
     image: redis:6
+    hostname: laravel-redis
+    container_name: laravel-redis
     ports:
       - 6379:6379
     environment:
+      - TZ=Asia/
+  elasticsearch:
+    image: elasticsearch:7.9.3
+    container_name: laravel-elasticsearch
+    hostname: laravel-elasticsearch
+    ports:
+      - 9300:9300
+      - 9200:9200
+    environment:
+      - TZ=Asia/Shanghai
+      - discovery.type=single-node
+    networks:
+      - local
+  rabbitmq:
+    image: rabbitmq:3.8.9-management
+    container_name: laravel-rabbitmq
+    hostname: laravel-rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=secret
       - TZ=Asia/Shanghai

@@ -1,37 +1,86 @@
 version: '3'
+
 services:
-  php:
-    build: ./php
-    image: magento:php74-cli
-    ports:
-      - 80:9090
-    volumes:
-      - ./magento2:/var/www/html
+  nginx:
+    image: nginx:1.18
+    container_name: docker-nginx
+    hostname: nginx118
     environment:
       - TZ=Asia/Shanghai
-    entrypoint: ["php", "-S", "0.0.0.0:9090"]
+    volumes:
+      - ./conf:/etc/nginx/conf.d
+      - ./magento:/var/www/html
+    user: :www-data
+    ports:
+      - 80:80
+    networks:
+      - local
+    depends_on:
+      - php
+  php:
+    build: ./php
+    container_name: docker-php
+    hostname: php73fpmStretch
+    volumes:
+      - ./magento:/var/www/html
+    user: :www-data
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      - local
     depends_on:
       - mysql
       - elasticsearch
   mysql:
-    image: mysql:8.0.21
-    container_name: mysql8021
-    hostname: mysql8021
+    image: mysql:8.0.22
+    container_name: docker-mysql
+    hostname: docker-mysql
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       - TZ=Asia/Shanghai
       - MYSQL_ROOT_PASSWORD=secret
-      - MYSQL_USER=magento
       - MYSQL_DATABASE=magento
-      - MYSQL_USER_PASSWORD=magento
+      - MYSQL_USER=magento
+      - MYSQL_PASSWORD=magento
     ports:
-      - 3030:3306
+      - 3306:3306
+    networks:
+      - local
   elasticsearch:
-    image: elasticsearch:7.9.1
-    container_name: elasticsearch791
-    hostname: elasticsearch791
+    image: elasticsearch:7.9.3
+    container_name: elasticsearch
+    hostname: elasticsearch793
+    ports:
+      - 9300:9300
+      - 9200:9200
     environment:
       - TZ=Asia/Shanghai
       - discovery.type=single-node
+    networks:
+      - local
+  rabbitmq:
+    image: rabbitmq:3.8.9-management
+    container_name: rabbitmq
+    hostname: rabbitmq389m
     ports:
-      - 19200:9200
-      - 19300:9300
+      - 5672:5672
+      - 15672:15672
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=secret
+      - TZ=Asia/Shanghai
+    networks:
+      - local
+  redis:
+    image: redis:6
+    container_name: redis
+    hostname: redis6
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - 6379:6379
+    networks:
+      - local
+
+networks:
+  local:
+    external: true
